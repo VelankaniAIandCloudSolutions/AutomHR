@@ -66,6 +66,9 @@ class Reports extends MX_Controller {
 				case 'attendance_report':
 				$this->_attendance_report();
 				break;
+				case 'biometric_attendance_report':
+				$this->_biometric_attendance_report();
+				break;
 				case 'leave_report':
 					$this->_leave_report();
 					break;
@@ -759,6 +762,72 @@ class Reports extends MX_Controller {
 			->set_layout('users')
 			->build('report/attendance_report',isset($data) ? $data : NULL);
 	}
+
+	function _biometric_attendance_report(){
+		$data = array('page' => lang('reports'),'form' => TRUE,'datatables' => TRUE);
+		$data['start_date'] = $data['end_date'] = '';
+		$data['user_id'] = $data['branch_id'] = $data['attendance_month'] = $data['attendance_year'] =  $data['num_days'] = '';
+		$data['branch'] = 0;
+
+		if($this->input->post()){
+			$data['attendance_month'] = $this->input->post('attendance_month');
+			$data['attendance_year'] = $this->input->post('attendance_year');
+			$data['branch'] = $this->input->post('branch');
+			$branch = $data['branch'];
+			$api_start_date = '01'.str_pad($data['attendance_month'], 2, '0', STR_PAD_LEFT).$data['attendance_year'];
+			$last_day = cal_days_in_month(CAL_GREGORIAN, $data['attendance_month'], $data['attendance_year']);
+			$api_end_date = $last_day.str_pad($data['attendance_month'], 2, '0', STR_PAD_LEFT).$data['attendance_year'];
+			
+			$gn_date = '15-'.$data['attendance_month'].'-'.$data['attendance_year'];
+			$data['cur_month'] = date('M',strtotime($gn_date));
+			$data['cur_month2'] = date('m', strtotime($gn_date));
+			$req_month = date('m',strtotime($gn_date));
+			$data['start_date'] = '01-'.$req_month.'-'.$data['attendance_year'];
+			$data['end_date'] = date("t-m-Y", strtotime($gn_date));
+			$data['num_days']=cal_days_in_month(CAL_GREGORIAN,$data['attendance_month'],$data['attendance_year']);
+			$apiResponse = $this->makeBiometricAttendanceAPIRequest($api_start_date , $api_end_date, $branch );
+			$data['apiResponse'] = $apiResponse;
+		}
+		
+		$this->template
+			->set_layout('users')
+			->set('selectedBranch', $data['branch'])
+			->build('report/biometric_attendance_report',isset($data) ? $data : NULL);
+	}
+
+
+	function makeBiometricAttendanceAPIRequest($start_date, $end_date,$branch ) {
+		$curl = curl_init();
+		if($branch==0){
+			$api_url  = 'http://10.1.0.20/cosec/api.svc/v2/attendance-daily?action=get;field-name=userid,username,processdate,organization_name,department_name,category_name,branch_name,firsthalf,secondhalf,worktime_hhmm,punch1,punch2,punch3,punch4,scheduleshift,workingshift;date-range='.$start_date.'-'.$end_date.';format=json';
+		}
+		else{
+			$api_url  = 'http://10.1.0.20/cosec/api.svc/v2/attendance-daily?action=get;field-name=userid,username,processdate,organization_name,department_name,category_name,branch_name,firsthalf,secondhalf,worktime_hhmm,punch1,punch2,punch3,punch4,scheduleshift,workingshift;date-range='.$start_date.'-'.$end_date. ';range=branch;id='.$branch.';format=json';
+		}
+		curl_setopt_array($curl, array(
+		  CURLOPT_URL => $api_url,
+		  CURLOPT_RETURNTRANSFER => true,
+		  CURLOPT_ENCODING => '',
+		  CURLOPT_MAXREDIRS => 10,
+		  CURLOPT_TIMEOUT => 0,
+		  CURLOPT_FOLLOWLOCATION => true,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_CUSTOMREQUEST => 'GET',
+		  CURLOPT_HTTPHEADER => array(
+			'Authorization: Basic c2E6MTIzNDU=',
+		  ),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		// return json_encode($response);
+		return $response;
+	  }
+	  
+	  
+	  
+
 	function get_attendance_day($month,$year,$time,$d,$user_id=''){
 		$list=array();
 		$return_data = '';

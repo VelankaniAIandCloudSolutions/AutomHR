@@ -17,7 +17,7 @@
               <li><a href="<?=base_url()?>reports/view/payslip_report"><?=lang('payslip_report')?></a></li>-->
               <li><a href="<?=base_url()?>reports/view/leave_report">Leave Report</a></li>
               <li><a href="<?=base_url()?>reports/view/attendance_report"><?=lang('attendance_report')?></a></li>
-              <li><a href="<?=base_url()?>reports/view/leave_report">Biometric Attendance Report</a></li>
+              <li><a href="<?=base_url()?>reports/view/biometric_attendance_report">Biometric Attendance Report</a></li>
               </ul>
               </div>
 

@@ -304,8 +304,8 @@ date_default_timezone_set('Asia/Kolkata');
                    <tr>
                       <th>#</th>
                       <th>Employee </th>
-					  <th>Department</th>
-					  <th>Designation</th>
+                      <th>Department</th>
+                      <th>Designation</th>
                       <th>Total Hours </th>
 					<?php
 					for($i=1;$i<=$num_days;$i++){

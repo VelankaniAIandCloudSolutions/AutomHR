@@ -12,9 +12,9 @@
 		</div>
 		<div class="col-md-6 text-right m-b-30">
 				<?php if(App::is_permit('menu_candidate_list','create')){?><a href="<?php echo base_url(); ?>jobs/add_candidates" class="btn add-btn"> <?php echo lang('add_candidates');?></a><?php } ?>
-
-				<!--<?php if(App::is_permit('menu_candidate_list','read')){?><a href="<?php echo base_url(); ?>jobs/candidates_board" class="btn add-btn m-r-5"> <?php echo lang('board_view');?></a><?php }?>-->
-
+				<?php if(App::is_permit('menu_candidate_list','create')){?><a href="<?php echo base_url(); ?>jobs/parse_resumes_view" class="btn add-btn mr-2">Parse Resumes</a><?php } ?>
+				
+		
 			</div>
 	</div>
 </div>

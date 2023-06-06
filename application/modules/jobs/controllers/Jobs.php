@@ -445,7 +445,150 @@ class Jobs extends MX_Controller
 
     }
 
+    function parse_resumes_view() {
+      if(!App::is_access('menu_candidate_list'))
+      {
+      $this->session->set_flashdata('tokbox_error', lang('access_denied'));
+      redirect('');
+      }		
+          $this->load->model('Jobs_model');
+          $this->load->module('layouts');
+          $this->load->library('template');
+          $this->template->title('Parse Resumes'.' - '.config_item('company_name'));
+          $data['page'] = 'Parse Resumes';
+          $data['sub_page'] = 'Parse Resumes';
+          $data['datatables'] = true;
+          $data['form'] = true;
+          $data['currencies'] = App::currencies();
+          $data['languages'] = App::languages();
+          $data['departments'] = $this->Jobs_model->select('departments');
+          $data['designations'] = $this->Jobs_model->select('designation');
+          $data['candidates_list'] = $this->Jobs_model->select_candidates();
+           $this->template
+                  ->set_layout('users')
+                  ->build('parse_resumes', isset($data) ? $data : null);
+  
+    }
+    function parse_resumes() {
+      if(isset($_FILES['resumes']) && $_FILES['resumes']['error'][0] === UPLOAD_ERR_OK) {
+        $apiUrl = 'http://localhost:8000/api/v1/file_upload_view'; // Replace with your actual API endpoint URL
+        
+        $ch = curl_init();
+    
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+        $postData = array();
+        foreach ($_FILES['resumes']['tmp_name'] as $index => $tmpName) {
+          $file = new CURLFile($tmpName, $_FILES['resumes']['type'][$index], $_FILES['resumes']['name'][$index]);
+          $postData["resumes[$index]"] = $file;
+        }
+    
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    
+        $response = curl_exec($ch);
+        if(curl_errno($ch)) {
+          $error = curl_error($ch);
+          echo "cURL Error: $error";
+        }
+        
+        // Close cURL
+        curl_close($ch);
+        $responseArray = json_decode($response, true);
+        $resumes = $responseArray['resumes'];
+        $data['resumes'] = array();
+        foreach ($resumes as $resume) {
+            $data['resumes'][] = $resume;
+        }
 
+        
+        $this->load->model('Jobs_model');
+        $this->load->module('layouts');
+        $this->load->library('template');
+        $this->template->title('Parse Resumes'.' - '.config_item('company_name'));
+        $data['page'] = 'Parse Resumes';
+        $data['sub_page'] = 'Parse Resumes';
+        $data['datatables'] = true;
+        $data['form'] = true;
+        $data['currencies'] = App::currencies();
+        $data['languages'] = App::languages();
+        $data['departments'] = $this->Jobs_model->select('departments');
+        $data['designations'] = $this->Jobs_model->select('designation');
+        $data['candidates_list'] = $this->Jobs_model->select_candidates();
+         $this->template
+                ->set_layout('users')
+                ->build('parse_resumes', isset($data) ? $data : null);
+        $this->template
+        ->set_layout('users')
+        ->build('parse_resumes', isset($data) ? $data : null);
+      } 
+      else {
+        // Handle the file upload error
+        echo "File upload error!";
+      }
+
+    }
+    function save_parsed_resumes() {
+      try{
+
+        $editedData = $_POST['editedData'];
+
+        $data = $editedData; // Assuming $editedData is already an array
+        
+        foreach ($data as $item) {
+
+            $name = $item['Name'];
+            $nameParts = explode(" ", $name);
+            $firstName = $nameParts[0];
+            $lastName = implode(" ", array_slice($nameParts, 1));
+            $email = $item['Email'];
+            $mobile = $item['Mobile'];
+            $skills = $item['Skills'];
+            $designation = $item['Designation'];
+            $position = $item['Position'];
+            $link = $item['Resume'];
+            $basic_upd['first_name'] = $firstName;
+            $basic_upd['last_name'] = $lastName;
+            $basic_upd['email'] = $email;
+            $basic_upd['password'] = md5('password@123');
+            $basic_upd['status'] = 1;
+            $data = array(
+              strval($item['category'])
+            );
+            $basic_upd['job_category_id'] =json_encode($data);
+            $data2 = array(
+              strval($item['position'])
+            );
+            $basic_upd['position_type_id'] =json_encode($data2);
+            $upd_data['skills'] = $skills;
+            $upd_data['phone_number'] = $mobile;
+            $update_basic = $this->Jobs_model->insert('registered_candidates',$basic_upd); 
+            $files_detail = $this->Jobs_model->upload_using_url($link);
+            $file_name = basename($link);
+            $file_data['file_name'] = $file_name;           
+            $file_data['file_type'] = 1; 
+            $file_data['title'] = lang('resume'); 
+            $file_data['candidate_id'] = $update_basic; 
+            $add_file = $this->Jobs_model->insert('candidate_files',$file_data);
+            $upd_data['candidate_id'] =  $update_basic;
+            $result  =  $this->Jobs_model->insert('candidate_additional_information',$upd_data);
+        }
+        
+        $response = array(
+            'message' => 'Function executed successfully',
+            'result' => $result,
+        );
+    
+      }
+      catch (Exception $e) {
+        $response = array(
+          'message' => 'Error occurred: ' . $e->getMessage(),
+        );
+      }
+      echo json_encode($response);
+  }
+  
      function delete_candidate(){
 
         if($this->input->post()){

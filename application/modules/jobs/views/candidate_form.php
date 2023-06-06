@@ -102,7 +102,7 @@
 											$dept_array =array();
 											if(isset($candidate_detail['job_category_id'])){
 
-													$dept_array = json_decode($candidate_detail['job_category_id'],true);
+												$dept_array = json_decode($candidate_detail['job_category_id'],true);
 												
 											}
 

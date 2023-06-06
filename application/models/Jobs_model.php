@@ -8,7 +8,11 @@ class Jobs_model extends CI_Model
         parent::__construct();
       
     }
-
+    public function getTableFields($table)
+    {
+        $fields = $this->db->list_fields($table);
+        return $fields;
+    }
     public function insert($table,$data){
     	$this->db->insert($table,$data);		 
  		return $this->db->insert_id();
@@ -334,6 +338,27 @@ class Jobs_model extends CI_Model
         }
     }
 
+    function upload_using_url($file_url) {
+        $config['upload_path'] = './images/resume/';
+        $config['allowed_types'] = 'pdf|docx|doc';
+        $config['max_size'] = 0;
+        $this->load->library('upload', $config);
+        $this->upload->initialize($config);
+        $file_name= basename($file_url);
+        $file_content = file_get_contents($file_url);
+        if ($file_content) {
+            if (!$this->upload->do_upload($file_name)) {
+                $error = array('error' => $this->upload->display_errors());
+                return false;
+            } else {
+                $data = array('image_metadata' => $this->upload->data());
+                return $this->upload->data();
+            }
+        } else {
+            return false;
+        }
+    }
+    
     function select_question_list($where=NULL){
         $this->db->select('interview_questions.*,departments.deptname,jobs.job_title,question_category.category_name');
         $this->db->from('interview_questions');

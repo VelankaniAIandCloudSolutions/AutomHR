@@ -9,7 +9,7 @@
 <div class="content">
 	<div class="page-header">
 	<div class="row">
-		<div class="col-12">
+		<div class="col-md-6">
 			<h4 class="page-title m-b-0"><?php echo lang('manage_resumes');?></h4>
 			<ul class="breadcrumb p-l-0" style="background:none; border:none;">
 		        <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>"><?php echo lang('home');?></a></li>
@@ -17,6 +17,10 @@
 		         <li class="breadcrumb-item"><?php echo lang('manage_resumes');?></li>
 </ul>
 		</div>
+		<div class="col-md-6 text-right m-b-30">
+				<?php if(App::is_permit('menu_candidate_list','create')){?><a href="<?php echo base_url(); ?>jobs/parse_resumes_view" class="btn add-btn">Parse Resumes</a><?php } ?>
+		
+			</div>
 	</div>
 </div>
 	<?php //$this->load->view('sub_menus');?>
